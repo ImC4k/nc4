@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 
 download_directory = './IMERG'
 
-username = 'cnwongak'
-password = '20 Gladys03*'
+username = ''
+password = ''
 
 def download_nc4_by_url(url, output_path):
     # create IMERG directory if it doesn't exist
