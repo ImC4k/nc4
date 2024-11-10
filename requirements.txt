@@ -3,3 +3,5 @@ numpy
 matplotlib
 cartopy
 pydash
+requests
+pandas
