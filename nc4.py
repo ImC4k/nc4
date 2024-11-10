@@ -60,6 +60,7 @@ def download_nc4(iso_date):
     download_nc4_by_url(url, output_path)
 
 def download_all_nc4_by_url_file(url_file_path):
+    
     urls = []
     with open(url_file_path, 'r') as file:
         for line in file:
@@ -75,8 +76,6 @@ def download_all_nc4_by_url_file(url_file_path):
             continue
         download_nc4_by_url(url, output_path)
 
-
-
 def load_nc4(iso_date):
     day, month, year = iso_date.split('/')
     padded_day = day.zfill(2)
@@ -84,32 +83,19 @@ def load_nc4(iso_date):
     formatted_date = f'{year}{padded_month}{padded_day}'
 
     file_path = f'{download_directory}/{formatted_date}.nc4'
-    if os.path.exists(file_path):
-        return Dataset(file_path)
-    else:
+    if not os.path.exists(file_path):
         download_nc4(iso_date)
-        return Dataset(file_path)
+    return Dataset(file_path)
 
 def get_nc4_precipitation_stat(dataset, min_lat, max_lat, min_lon, max_lon):
-    standardize = lambda x: round(x * 10)
-    standardized_min_lat = standardize(min_lat)
-    standardized_max_lat = standardize(max_lat)
-    standardized_min_lon = standardize(min_lon)
-    standardized_max_lon = standardize(max_lon)
     precipitation = dataset.variables['precipitation'][0]
-    lat = dataset.variables['lat'][standardized_min_lat:standardized_max_lat]
-    lon = dataset.variables['lon'][standardized_min_lon:standardized_max_lon]
-    lon_2d, lat_2d = np.meshgrid(lon, lat)
+    lon_size, lat_size = precipitation.shape
+    standardize_lon = lambda x: round(round(x, 1) * 10 + lon_size / 2) # offset for negative longitudes
+    standardize_lat = lambda x: round(round(x, 1) * 10 + lat_size / 2) # offset for negative latitudes
+    standardized_min_lat = standardize_lat(min_lat)
+    standardized_max_lat = standardize_lat(max_lat)
+    standardized_min_lon = standardize_lon(min_lon)
+    standardized_max_lon = standardize_lon(max_lon)
 
-    # precipitation_transposed = np.transpose(precipitation)
     precipitation_ranged = precipitation[standardized_min_lon:standardized_max_lon, standardized_min_lat:standardized_max_lat]
-    # plot this range
-    fig, ax = plt.subplots(figsize=(10, 5))
-    # Create contour plot
-    precipitation_levels = np.arange(0,200,2)
-    precip_contour=ax.contourf(lon_2d, lat_2d, precipitation_ranged , levels=precipitation_levels, cmap='jet',extend='max')
-    # Add color bar
-    plt.show()
-
-    # precipitation_ranged = precipitation_transposed[standardize(min_lon):standardize(max_lon), standardize(min_lat):standardize(max_lat)]
-    return { "mean": np.ma.mean(precipitation_ranged), "max": np.ma.max(precipitation), "min": np.ma.min(precipitation_ranged) }
+    return { "mean": np.ma.mean(precipitation_ranged), "max": np.ma.max(precipitation_ranged), "min": np.ma.min(precipitation_ranged) }
