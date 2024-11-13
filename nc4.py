@@ -98,4 +98,4 @@ def get_nc4_precipitation_stat(dataset, min_lat, max_lat, min_lon, max_lon):
     standardized_max_lon = standardize_lon(max_lon)
 
     precipitation_ranged = precipitation[standardized_min_lon:standardized_max_lon, standardized_min_lat:standardized_max_lat]
-    return { "mean": np.ma.mean(precipitation_ranged), "max": np.ma.max(precipitation_ranged), "min": np.ma.min(precipitation_ranged) }
+    return { "mean": np.ma.mean(precipitation_ranged), "max": np.ma.max(precipitation_ranged), "min": np.ma.min(precipitation_ranged) , "lat_min_index": standardized_min_lat, "lat_max_index": standardized_max_lat, "lon_min_index": standardized_min_lon, "lon_max_index": standardized_max_lon}
