@@ -41,9 +41,11 @@ def process_location(location):
         time_dimension = get_number_of_date_in_year(iso_date) - 1
         for region in regions:
             row = gis_row.copy()
-            location_max = 0
-            location_data_count = 0
-            location_mean = 0
+            region_max = 0
+            region_max_coordinate = (0, 0)
+            region_data_count = 0
+            region_mean = 0
+            region_max_200_mean = 0
             region_name = region["region_name"]
             coordinate_pairs = region["coordinate_pairs"]
             for coordinate_pair in coordinate_pairs:
@@ -51,17 +53,27 @@ def process_location(location):
                 min_lat, min_lon = min_coordinate
                 max_lat, max_lon = max_coordinate
                 precipitation_stat = get_nc4_precipitation_stat(data, min_lat, max_lat, min_lon, max_lon, 'longitude', 'latitude', 'precip', time_dimension)
-                location_max = max(location_max, precipitation_stat["max"])
-                old_location_data_count = location_data_count
-                location_data_count += precipitation_stat["count"]
-                location_mean = (location_mean * old_location_data_count + precipitation_stat["mean"] * precipitation_stat["count"]) / location_data_count 
+                coordinate_pair_max = precipitation_stat["max"]
+                coordinate_pair_max_coordinate = precipitation_stat["max_coordinate"]
+                region_max = max(region_max, coordinate_pair_max)
+                if coordinate_pair_max == region_max:
+                    region_max_coordinate = coordinate_pair_max_coordinate
+                    region_max_coordinate_lon, region_max_coordinate_lat = region_max_coordinate
+                    region_max_precipitation_stat = get_nc4_precipitation_stat(data, region_max_coordinate_lat - 1, region_max_coordinate_lat + 1, region_max_coordinate_lon - 1, region_max_coordinate_lon + 1, 'longitude', 'latitude', 'precip', time_dimension)
+                    region_max_200_mean = region_max_precipitation_stat["mean"]
+                old_location_data_count = region_data_count
+                region_data_count += precipitation_stat["count"]
+                region_mean = (region_mean * old_location_data_count + precipitation_stat["mean"] * precipitation_stat["count"]) / region_data_count 
             # print(precipitation_stat)
             row['LAT_MIN'] = min_lat
             row['LAT_MAX'] = max_lat
             row['LON_MIN'] = min_lon
             row['LON_MAX'] = max_lon
-            row['PRECIPITATION_MAX'] = location_max
-            row['PRECIPITATION_MEAN'] = location_mean
+            row['PRECIPITATION_MAX'] = region_max
+            row['PRECIPITATION_MEAN'] = region_mean
+            row['PRECIPITATION_MAX_COORDINATE_LAT'] = region_max_coordinate[1]
+            row['PRECIPITATION_MAX_COORDINATE_LON'] = region_max_coordinate[0]
+            row['PRECIPITATION_MAX_200_MEAN'] = region_max_200_mean
             row['LAT_MIN_INDEX'] = precipitation_stat["lat_min_index"]
             row['LAT_MAX_INDEX'] = precipitation_stat["lat_max_index"]
             row['LON_MIN_INDEX'] = precipitation_stat["lon_min_index"]
