@@ -92,10 +92,10 @@ def get_nc4_precipitation_stat(dataset, min_lat, max_lat, min_lon, max_lon):
     lon_size, lat_size = precipitation.shape
     standardize_lon = lambda x: round(round(x, 1) * 10 + lon_size / 2) # offset for negative longitudes
     standardize_lat = lambda x: round(round(x, 1) * 10 + lat_size / 2) # offset for negative latitudes
-    standardized_min_lat = standardize_lat(min_lat)
-    standardized_max_lat = standardize_lat(max_lat)
-    standardized_min_lon = standardize_lon(min_lon)
-    standardized_max_lon = standardize_lon(max_lon)
+    standardized_min_lat = standardize_lat(min_lat) - 1
+    standardized_max_lat = standardize_lat(max_lat) + 1
+    standardized_min_lon = standardize_lon(min_lon) - 1
+    standardized_max_lon = standardize_lon(max_lon) + 1
 
     precipitation_ranged = precipitation[standardized_min_lon:standardized_max_lon, standardized_min_lat:standardized_max_lat]
     return { "mean": np.ma.mean(precipitation_ranged), "max": np.ma.max(precipitation_ranged), "min": np.ma.min(precipitation_ranged), "count": np.ma.count(precipitation_ranged) }
